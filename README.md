@@ -46,4 +46,4 @@ becomes
 
 ---
 
-The MTA GTFS updates once every 30 seconds and the plugin is set to poll for updates every 30 seconds by default. The polling time can be changed in the settings to a different number of seconds.
+The MTA GTF updates once every 30 seconds and the plugin is set to poll for updates every 30 seconds by default. The polling time can be changed in the settings to a different number of seconds.
