@@ -1,96 +1,49 @@
-# Obsidian Sample Plugin
+# mta-view
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+### Intro
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+---
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+mta-view adds the ability to see MTA subway departures from a selected subway station with realtime updates. Inserting the departure data into your notes gives you important information in planing your activities around train schedules.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+I made this because I travel across the city for my job and when I first started using obsidian one of the first notes I made was around tasks that I have to do in a certain place and combined with the amazing Map View plugin I wanted to also see subway departures from my stop in my note.
 
-## First time developing plugins?
+So I made this.
 
-Quick starting guide for new plugin devs:
+### Mobile
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+---
 
-## Releasing new releases
+Obsidian mobile never worked for me so this is completely untested on mobile.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+### How to start
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+---
 
-## Adding your plugin to the community plugin list
+-   After installing and enabling the app, retrieve your [API token](https://api.mta.info/#/AccessKey) and enter it in the settings page (API tokens expire after 30 days of no use)
+-   Use the Search for Subway Stations command in the command palette to find your subway stop
+-   Selecting a stop will insert markdown at your cursor to show all departures for the selected stop
 
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+### Filtering
 
-## How to use
+---
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+You can easily filter out lines from the stop by removing them from the array in the markdown.
 
-## Manually installing the plugin
+You can also filter by direction by adding a N for uptown or S for downtown at the end of the stopId. To show only uptown departures
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+```subway
+116 [1]
 ```
 
-If you have multiple URLs, you can also do:
+becomes
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+```subway
+116N [1]
 ```
 
-## API Documentation
+### Realtime Updates
 
-See https://github.com/obsidianmd/obsidian-api
+---
+
+The MTA GTFS updates once every 30 seconds and the plugin is set to poll for updates every 30 seconds by default. The polling time can be changed in the settings to a different number of seconds.

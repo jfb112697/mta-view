@@ -1,46 +1,13 @@
-import {
-  App,
-  Editor,
-  MarkdownView,
-  MarkdownPostProcessorContext,
-  Modal,
-  Notice,
-  Plugin,
-  PluginManifest,
-  PluginSettingTab,
-  Setting,
-} from "obsidian"; //@ts-ignore
-import * as path from "path";
-import * as protobuf from "protobufjs";
-import { SubwayStations, SubwayStation } from "./stops";
-import { SubwayStationSuggestModal } from "SearchModal";
-import { SubwayColors } from "colors";
-
-// Remember to rename these classes and interfaces!
-
-interface MyPluginSettings {
-  MTAKey: string,
-  AutoRefresh: boolean,
-  PollSeconds: number,
-}
-
-const DEFAULT_SETTINGS: MyPluginSettings = {
-  MTAKey: "default",
-  AutoRefresh: true,
-  PollSeconds: 30,
-};
-
-//PLEASE tell me there is a better way to do this lol
-const proto = `// Copyright 2015 The GTFS Specifications Authors.
+// Copyright 2015 The GTFS Specifications Authors.
 //
-// Licensed under the Apache License, Version 2.0 (the \"License\");
+// Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an \"AS IS\" BASIS,
+// distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
@@ -55,8 +22,8 @@ const proto = `// Copyright 2015 The GTFS Specifications Authors.
 // This protocol is published at:
 // https://github.com/google/transit/tree/master/gtfs-realtime
 
-syntax = \"proto2\";
-option java_package = \"com.google.transit.realtime\";
+syntax = "proto2";
+option java_package = "com.google.transit.realtime";
 package transit_realtime;
 
 // The contents of a feed message.
@@ -64,7 +31,7 @@ package transit_realtime;
 // obtained as a response to an appropriate HTTP GET request.
 // A realtime feed is always defined with relation to an existing GTFS feed.
 // All the entity ids are resolved with respect to the GTFS feed.
-// Note that \"required\" and \"optional\" as stated in this file refer to Protocol
+// Note that "required" and "optional" as stated in this file refer to Protocol
 // Buffer cardinality, not semantic cardinality.  See reference.md at
 // https://github.com/google/transit/tree/master/gtfs-realtime for field
 // semantic cardinality.
@@ -87,7 +54,7 @@ message FeedMessage {
 // Metadata about a feed, included in feed messages.
 message FeedHeader {
   // Version of the feed specification.
-  // The current version is 2.0.  Valid versions are \"2.0\", \"1.0\".
+  // The current version is 2.0.  Valid versions are "2.0", "1.0".
   required string gtfs_realtime_version = 1;
 
   // Determines whether the current fetch is incremental.  Currently,
@@ -291,15 +258,15 @@ message TripUpdate {
       // Supports real-time stop assignments. Refers to a stop_id defined in the GTFS stops.txt.
       // The new assigned_stop_id should not result in a significantly different trip experience for the end user than
       // the stop_id defined in GTFS stop_times.txt. In other words, the end user should not view this new stop_id as an
-      // \"unusual change\" if the new stop was presented within an app without any additional context.
+      // "unusual change" if the new stop was presented within an app without any additional context.
       // For example, this field is intended to be used for platform assignments by using a stop_id that belongs to the
       // same station as the stop originally defined in GTFS stop_times.txt.
       // To assign a stop without providing any real-time arrival or departure predictions, populate this field and set
       // StopTimeUpdate.schedule_relationship = NO_DATA.
-      // If this field is populated, it is preferred to omit \`StopTimeUpdate.stop_id\` and use only \`StopTimeUpdate.stop_sequence\`. If
-      // \`StopTimeProperties.assigned_stop_id\` and \`StopTimeUpdate.stop_id\` are populated, \`StopTimeUpdate.stop_id\` must match \`assigned_stop_id\`.
+      // If this field is populated, it is preferred to omit `StopTimeUpdate.stop_id` and use only `StopTimeUpdate.stop_sequence`. If
+      // `StopTimeProperties.assigned_stop_id` and `StopTimeUpdate.stop_id` are populated, `StopTimeUpdate.stop_id` must match `assigned_stop_id`.
       // Platform assignments should be reflected in other GTFS-realtime fields as well
-      // (e.g., \`VehiclePosition.stop_id\`).
+      // (e.g., `VehiclePosition.stop_id`).
       // NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future.
       optional string assigned_stop_id = 1;
 
@@ -486,7 +453,7 @@ message VehiclePosition {
   // Consumers should represent OccupancyStatus values as the state indicated 
   // and intended by the producer. Likewise, producers must use OccupancyStatus values that
   // correspond to actual vehicle occupancy states.
-  // For describing passenger occupancy levels on a linear scale, see \`occupancy_percentage\`.
+  // For describing passenger occupancy levels on a linear scale, see `occupancy_percentage`.
   // This field is still experimental, and subject to change. It may be formally adopted in the future.
   enum OccupancyStatus {
     // The vehicle or carriage is considered empty by most measures, and has few or no
@@ -550,7 +517,7 @@ message VehiclePosition {
     optional string id = 1;
 
     // User visible label that may be shown to the passenger to help identify
-    // the carriage. Example: \"7712\", \"Car ABC-32\", etc...
+    // the carriage. Example: "7712", "Car ABC-32", etc...
     // This message/field is still experimental, and subject to change. It may be formally adopted in the future.
     optional string label = 2;
 
@@ -559,7 +526,7 @@ message VehiclePosition {
     optional OccupancyStatus occupancy_status = 3 [default = NO_DATA_AVAILABLE];
 
     // Occupancy percentage for this given carriage, in this vehicle.
-    // Follows the same rules as \"VehiclePosition.occupancy_percentage\"
+    // Follows the same rules as "VehiclePosition.occupancy_percentage"
     // -1 in case data is not available for this given carriage (as protobuf defaults to 0 otherwise)
     // This message/field is still experimental, and subject to change. It may be formally adopted in the future.
     optional int32 occupancy_percentage = 4 [default = -1];
@@ -573,7 +540,7 @@ message VehiclePosition {
     // If the second carriage in the direction of travel has a value of 3,
     // consumers will discard data for all carriages (i.e., the multi_carriage_details field).
     // Carriages without data must be represented with a valid carriage_sequence number and the fields 
-    // without data should be omitted (alternately, those fields could also be included and set to the \"no data\" values).
+    // without data should be omitted (alternately, those fields could also be included and set to the "no data" values).
     // This message/field is still experimental, and subject to change. It may be formally adopted in the future.
     optional uint32 carriage_sequence = 5;
 
@@ -685,7 +652,7 @@ message Alert {
   // NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future.
   optional TranslatedImage image = 15; 
 
-  // Text describing the appearance of the linked image in the \`image\` field (e.g., in case the image can't be displayed
+  // Text describing the appearance of the linked image in the `image` field (e.g., in case the image can't be displayed
   // or the user can't see the image for accessibility reasons). See the HTML spec for alt image text - https://html.spec.whatwg.org/#alt.
   // NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future.
   optional TranslatedString image_alternative_text = 16;
@@ -1009,7 +976,7 @@ message TranslatedImage {
     required string url = 1;
 
     // IANA media type as to specify the type of image to be displayed. 
-    // The type must start with \"image/\"
+    // The type must start with "image/"
     required string media_type = 2;
 
     // BCP-47 language code. Can be omitted if the language is unknown or if
@@ -1046,14 +1013,14 @@ message TranslatedImage {
 // NOTE: This message is still experimental, and subject to change. It may be formally adopted in the future.
 message Shape {
   // Identifier of the shape. Must be different than any shape_id defined in the (CSV) GTFS.
-  // This field is required as per reference.md, but needs to be specified here optional because \"Required is Forever\"
+  // This field is required as per reference.md, but needs to be specified here optional because "Required is Forever"
   // See https://developers.google.com/protocol-buffers/docs/proto#specifying_field_rules
   // NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future.
   optional string shape_id = 1;
 
   // Encoded polyline representation of the shape. This polyline must contain at least two points.
   // For more information about encoded polylines, see https://developers.google.com/maps/documentation/utilities/polylinealgorithm
-  // This field is required as per reference.md, but needs to be specified here optional because \"Required is Forever\"
+  // This field is required as per reference.md, but needs to be specified here optional because "Required is Forever"
   // See https://developers.google.com/protocol-buffers/docs/proto#specifying_field_rules
   // NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future.
   optional string encoded_polyline = 2;
@@ -1065,321 +1032,4 @@ message Shape {
 
   // The following extension IDs are reserved for private use by any organization.
   extensions 9000 to 9999;
-}`;
-// Get the message type
-
-async function fetchMtaData(stopId: any, apiKey: string, lines: string[]) {
-  //@ts-ignore
-  const root = protobuf.parse(proto, { keepCase: true }).root;
-  const FeedMessage = root.lookupType("transit_realtime.FeedMessage");
-  const urls: any = {
-    "1": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-    "2": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-    "3": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-    "4": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-    "5": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-    "6": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-    "7": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-    "a": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
-    "c": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
-    "e": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
-    "g": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g",
-    "b": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-    "d": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-    "f": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-    "m": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-    "j": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz",
-    "z": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz",
-    "n": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
-    "q": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
-    "r": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
-    "w": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
-    "l": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l",
-    "s": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si",
-    "i": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si"
-  }
-  const validUrls: string[] = [];
-  lines.forEach((l) => {
-    validUrls.push(urls[l.toLowerCase()]);
-  });
-
-
-
-  const headers = {
-    "x-api-key": apiKey,
-  };
-
-  const matchesStopId = (stopId: string, apiStopId: string) => {
-    const regex = new RegExp(`^${stopId}(N|S)?$`);
-    return regex.test(apiStopId);
-  };
-
-  const departures: any[] = [];
-  for (const url of validUrls) {
-    try {
-
-      const response = await fetch(url, { headers });
-
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const message = FeedMessage.decode(buffer) as any;
-
-        const departureCount = 4;
-
-        for (const entity of message.entity) {
-          if (entity.trip_update && entity.trip_update.stop_time_update) {
-            for (const stopTimeUpdate of entity.trip_update
-              .stop_time_update) {
-              if (
-                stopTimeUpdate.departure &&
-                stopTimeUpdate.departure.time &&
-                matchesStopId(stopId, stopTimeUpdate.stop_id)
-              ) {
-                if (stopTimeUpdate.departure.time > Math.floor(Date.now() / 1000)) {
-                  const date = new Date(stopTimeUpdate.departure.time * 1000);
-                  const humanReadableTime = date.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  });
-                  const stop = stopTimeUpdate.stop_id;
-                  const direction = stop.includes("S") ? "Downtown" : "Uptown";
-                  departures.push({//@ts-ignore
-                    lineColor: SubwayColors[entity.trip_update.trip.route_id.toString()],
-                    departureTime: humanReadableTime,
-                    trainNumber: entity.trip_update.trip.route_id,
-                    direction: direction,
-                    departureTimestamp: stopTimeUpdate.departure.time
-                  })
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Fetch error: ", err);
-    }
-  }
-  return departures.sort((a, b) => a.departureTimestamp - b.departureTimestamp).slice(0, 4);
-}
-
-export default class MyPlugin extends Plugin {
-  settings: MyPluginSettings;
-
-
-
-  async onload() {
-
-    await this.loadSettings();
-
-
-    this.addCommand({
-      id: 'search-subway',
-      name: 'Search for MTA subway stations',
-      callback: () => {
-        const modal = new SubwayStationSuggestModal(this.app, Object.values(SubwayStations));
-        modal.open();
-      }
-    });
-
-
-    this.addSettingTab(new SampleSettingTab(this.app, this));
-    if (this.settings.MTAKey.length < 10) {
-      console.log("invalid MTA API key");
-      return;
-    }
-    const style = document.createElement("style");
-    style.type = "text/css";
-    style.innerHTML = `
-    .invalid-input { 
-      transition: all .25s;
-      border-color: red !important;
-      box-shadow: 0 0 0 2px red !important;
-    }
-    .train-info {
-      display: flex;
-      align-items: center;
-	  flex-shrink:0;
-	  flex-wrap:wrap;
-    }
-    .train-circle {
-      width: 40px;
-      height: 40px;
-	  min-width:40px;
-	  min-height:40px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .train-number {
-      color: white;
-      font-weight: bold;
-    }
-    .train-details {
-      margin-left: 10px;
-    }
-    .train-time, .train-direction {
-      display: block;
-    }
-	.departure-board{
-		display:grid;
-		grid-template-columns:1fr 1fr;
-		height:auto;
-		gap:4px;
-	}
-  `;
-    document.head.appendChild(style);
-    this.registerMarkdownCodeBlockProcessor(
-      "subway",
-      async (
-        source: string,
-        el: HTMLElement,
-        ctx: MarkdownPostProcessorContext
-      ) => {
-        const update = async () => {
-          const args = source.trim().split(' ');
-          const lines = args[1] ? args[1].replace("[", "").replace("]", "").split(",") : ["1"];
-          let departures;
-          try {
-            departures = await fetchMtaData(args[0], this.settings.MTAKey, lines || [""]);
-          } catch (error) {
-            el.innerHTML = `<div class="error">Error: ${error.message}</div>`; // Display error message in the div
-            return;
-          }
-
-          if (!departures || departures.length < 1) {
-            el.innerHTML = `<div class="error">No departures found.</div>`; // Display if no departures
-            return;
-          }
-          const stopTitle = SubwayStations.find((s) => s.stopId == args[0])?.stopName;
-
-          //@ts-ignore
-          const departureHtml = departures?.sort((d1, d2) => d1.departureTimestamp < d2.departureTimestamp ? -1 : 1).map(departure => `
-				<div class="train-info">
-					<div class="train-circle" style="background-color: ${departure.lineColor};">
-					<span class="train-number">${departure.trainNumber}</span>
-					</div>
-					<div class="train-details">
-					<span class="train-time">Departing: ${departure.departureTime}</span>
-					<span class="train-direction">Direction: ${departure.direction}</span>
-					</div>
-				</div>
-				`).join('');
-          if (departures && departures.length > 0) {
-            el.innerHTML = `<div class="departure-board">${departureHtml}</div>`;
-          }
-
-        }
-
-        await update();
-
-        if (this.settings.AutoRefresh) {
-          setInterval(async () => await update(), this.settings.PollSeconds * 1000);
-        }
-
-      }
-    );
-  }
-
-  onunload() {
-    console.log("unloaded");
-  }
-
-  async loadSettings() {
-    this.settings = Object.assign(
-      {},
-      DEFAULT_SETTINGS,
-      await this.loadData()
-    );
-  }
-
-  async saveSettings() {
-    await this.saveData(this.settings);
-  }
-}
-
-class SampleModal extends Modal {
-  constructor(app: App) {
-    super(app);
-  }
-
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.setText("Woah!");
-  }
-
-  onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
-  }
-}
-
-
-
-class SampleSettingTab extends PluginSettingTab {
-  plugin: MyPlugin;
-
-  constructor(app: App, plugin: MyPlugin) {
-    super(app, plugin);
-    this.plugin = plugin;
-  }
-
-  display(): void {
-    const { containerEl } = this;
-
-    containerEl.empty();
-    containerEl.createEl('h2', {
-      text: 'mta-view settings.',
-    });
-
-    containerEl.createEl("a", {
-      href: "https://api.mta.info/#/AccessKey",
-      text: ""
-    })
-    const keySettting = new Setting(containerEl)
-      .setName("MTA API Key")
-      .setDesc("")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your MTA access key")
-          .setValue(this.plugin.settings.MTAKey)
-          .onChange(async (value) => {
-            this.plugin.settings.MTAKey = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    keySettting.descEl.innerHTML = "Get one <a href=\"https://api.mta.info/#/AccessKey\">here (after signing in)</a><p>Note: API Keys expire after 30 days of no use</p>";
-    new Setting(containerEl)
-      .setName("Auto Refresh Times")
-      .addToggle((component) =>
-        component
-          .setValue(this.plugin.settings.AutoRefresh)
-          .onChange(async (value) => {
-            this.plugin.settings.AutoRefresh = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Auto Refresh Polling Time")
-      .setDesc("In seconds")
-      .addText((text) =>
-        text
-          .setPlaceholder("Polling interval (in seconds)")
-          .setValue(this.plugin.settings.PollSeconds.toString())
-          .onChange(async (value) => {
-            if (/^\d+$/.test(value)) {
-              text.inputEl.classList.remove('invalid-input'); // Remove 'invalid-input' class if present
-              this.plugin.settings.PollSeconds = parseInt(value, 10);
-              await this.plugin.saveSettings();
-            } else {
-              text.inputEl.classList.add("invalid-input");
-            }
-          })
-      );
-  }
 }
